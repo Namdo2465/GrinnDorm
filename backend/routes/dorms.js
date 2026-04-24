@@ -111,4 +111,63 @@ router.get("/dorms/:id", async (req, res) => {
   }
 });
 
+// POST /api/reviews - Submit a new review
+router.post('/reviews', async (req, res) => {
+  try {
+    const supabase = req.supabase;
+    const { dorm_id, user_id, rating, comment } = req.body;
+
+    // Validate input
+    if (!dorm_id || !user_id || !rating || !comment) {
+      console.error('Missing required fields in review submission');
+      return res.status(400).json({ error: 'Missing required fields: dorm_id, user_id, rating, comment' });
+    }
+
+    if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
+      console.error('Invalid rating:', rating);
+      return res.status(400).json({ error: 'Rating must be an integer between 1 and 5' });
+    }
+
+    if (comment.trim().length === 0) {
+      console.error('Empty comment submitted');
+      return res.status(400).json({ error: 'Comment cannot be empty' });
+    }
+
+    // Generate random anonymous name
+    const animals = ['Tiger', 'Owl', 'Bear', 'Wolf', 'Fox', 'Eagle', 'Hawk', 'Deer', 'Rabbit', 'Squirrel'];
+    const randomAnimal = animals[Math.floor(Math.random() * animals.length)];
+    const randomNumber = Math.floor(Math.random() * 100) + 1;
+    const anonymous_name = `Anonymous ${randomAnimal} #${randomNumber}`;
+
+    // Insert review into database
+    const { data: newReview, error: insertError } = await supabase
+      .from('reviews')
+      .insert([
+        {
+          dorm_id: dorm_id,
+          user_id: user_id,
+          rating: rating,
+          comment: comment,
+          anonymous_name: anonymous_name
+        }
+      ])
+      .select();
+
+    if (insertError) {
+      console.error('Error inserting review:', insertError);
+      return res.status(500).json({ error: 'Failed to submit review' });
+    }
+
+    console.log(`Review submitted for dorm_id ${dorm_id} as ${anonymous_name}`);
+    res.status(201).json({
+      success: true,
+      review: newReview[0]
+    });
+
+  } catch (err) {
+    console.error('Error in POST /api/reviews:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;
