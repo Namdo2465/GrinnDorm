@@ -5,6 +5,7 @@ const { createClient } = require("@supabase/supabase-js");
 
 // Import routes
 const dormsRoutes = require("./routes/dorms");
+const authRoutes = require("./routes/auth");
 
 // Initialize Express app
 const app = express();
@@ -32,6 +33,7 @@ app.get("/api/health", (req, res) => {
 
 // Routes
 app.use("/api", dormsRoutes);
+app.use("/api/auth", authRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
