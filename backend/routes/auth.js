@@ -101,6 +101,77 @@ router.post('/signup', async (req, res) => {
   }
 });
 
+// POST /api/auth/send-code - Send verification code for login
+router.post('/send-code', async (req, res) => {
+  try {
+    const supabase = req.supabase;
+    const { email } = req.body;
+
+    // Validate input
+    if (!email) {
+      console.error('Send-code: Email not provided');
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    if (!isValidEmail(email)) {
+      console.error(`Send-code: Invalid email format - ${email}`);
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    // Check if user exists
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .single();
+
+    if (userError && userError.code !== 'PGRST116') {
+      console.error('Send-code: Database error:', userError);
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      console.error(`Send-code: User not found - ${normalizedEmail}`);
+      return res.status(404).json({ error: 'Email not registered. Please sign up first.' });
+    }
+
+    // Generate verification code
+    const verificationCode = generateVerificationCode();
+
+    // Store verification code
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
+    const { error: codeError } = await supabase
+      .from('verification_codes')
+      .insert([
+        {
+          email: normalizedEmail,
+          code: verificationCode,
+          expires_at: expiresAt
+        }
+      ]);
+
+    if (codeError) {
+      console.error('Send-code: Error storing verification code:', codeError);
+      return res.status(500).json({ error: 'Failed to generate verification code' });
+    }
+
+    console.log(`Verification code sent to: ${normalizedEmail}`);
+
+    res.json({
+      success: true,
+      email: normalizedEmail,
+      code: verificationCode,
+      message: 'Verification code sent to your email'
+    });
+
+  } catch (err) {
+    console.error('Error in POST /api/auth/send-code:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // POST /api/auth/verify - Verify email with code
 router.post('/verify', async (req, res) => {
   try {
