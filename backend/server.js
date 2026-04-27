@@ -1,4 +1,5 @@
 require("dotenv").config();
+console.log(process.env.SMTP_EMAIL);
 const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
@@ -41,5 +42,5 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
-// Export for testing 
+// Export for testing
 module.exports = { app, supabase };
