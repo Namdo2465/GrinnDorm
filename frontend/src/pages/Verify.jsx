@@ -10,7 +10,6 @@ export default function Verify({ setUserId }) {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [codeSent, setCodeSent] = useState(false)
-  const [sentCode, setSentCode] = useState('')
 
   const handleSendCode = async (e) => {
     e.preventDefault()
@@ -33,7 +32,6 @@ export default function Verify({ setUserId }) {
 
       setCodeSent(true)
       setCode('')
-      setSentCode(data.code)
     } catch (err) {
       setError('Failed to connect to server. Make sure backend is running.')
       console.error('Send-code error:', err)
@@ -104,11 +102,8 @@ export default function Verify({ setUserId }) {
 
           <label>Verification Code:</label>
           <p style={{ marginBottom: '1rem', fontSize: '0.9rem', color: '#666' }}>
-            Your verification code:
+            Check your email for the 6-digit verification code. It expires in 10 minutes.
           </p>
-          <div style={{ marginBottom: '1rem', padding: '0.75rem', backgroundColor: '#f0f0f0', borderRadius: '4px', textAlign: 'center', fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '2px' }}>
-            {sentCode}
-          </div>
           <input
             type="text"
             value={code}

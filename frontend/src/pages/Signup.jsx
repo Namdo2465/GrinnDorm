@@ -8,7 +8,6 @@ export default function Signup({ setUserId }) {
   const [step, setStep] = useState('email')
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
-  const [generatedCode, setGeneratedCode] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -31,7 +30,6 @@ export default function Signup({ setUserId }) {
         return
       }
 
-      setGeneratedCode(data.code)
       setStep('verify')
     } catch (err) {
       setError('Failed to connect to server. Make sure backend is running.')
@@ -96,8 +94,8 @@ export default function Signup({ setUserId }) {
           <p style={{ marginBottom: '1rem' }}>
             A verification code has been sent to <strong>{email}</strong>
           </p>
-          <p style={{ backgroundColor: '#e7f3ff', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}>
-            For testing purposes, your code is: <strong>{generatedCode}</strong>
+          <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '1rem' }}>
+            Check your email inbox (and spam folder) for the 6-digit code. It expires in 10 minutes.
           </p>
           <form onSubmit={handleVerify}>
             <label>Verification Code:</label>
@@ -118,7 +116,6 @@ export default function Signup({ setUserId }) {
               onClick={() => {
                 setStep('email')
                 setCode('')
-                setGeneratedCode('')
               }}
               style={{ background: '#6c757d' }}
               disabled={loading}

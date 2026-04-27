@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { sendVerificationEmail } = require('../utils/emailService');
 
 // Generate random 6-digit verification code
 function generateVerificationCode() {
@@ -87,12 +88,19 @@ router.post('/signup', async (req, res) => {
 
     console.log(`User signed up: ${normalizedEmail}, user_id: ${newUser.id}`);
 
+    // Send verification code via email
+    const emailSent = await sendVerificationEmail(normalizedEmail, verificationCode);
+
+    if (!emailSent) {
+      console.error('Signup: Failed to send email');
+      return res.status(500).json({ error: 'User created but failed to send verification email. Please try again.' });
+    }
+
     res.status(201).json({
       success: true,
       user_id: newUser.id,
       email: normalizedEmail,
-      code: verificationCode,
-      message: 'User created. Use this code to verify: ' + verificationCode
+      message: 'Account created! Check your email for the verification code.'
     });
 
   } catch (err) {
@@ -159,10 +167,17 @@ router.post('/send-code', async (req, res) => {
 
     console.log(`Verification code sent to: ${normalizedEmail}`);
 
+    // Send verification code via email
+    const emailSent = await sendVerificationEmail(normalizedEmail, verificationCode);
+
+    if (!emailSent) {
+      console.error('Send-code: Failed to send email');
+      return res.status(500).json({ error: 'Failed to send verification email. Please try again.' });
+    }
+
     res.json({
       success: true,
       email: normalizedEmail,
-      code: verificationCode,
       message: 'Verification code sent to your email'
     });
 
