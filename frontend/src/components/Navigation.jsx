@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import squirrel from "../squirrel.svg";
 
 export default function Navigation({ token, onLogout }) {
   const navigate = useNavigate();
@@ -11,7 +12,21 @@ export default function Navigation({ token, onLogout }) {
   return (
     <nav>
       <h1>
-        <Link to="/" style={{ color: "white", textDecoration: "none" }}>
+        <Link
+          to="/"
+          style={{
+            color: "white",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <img
+            src={squirrel}
+            alt="logo"
+            style={{ width: "40px", height: "40px" }}
+          />
           GrinnDorm
         </Link>
       </h1>
@@ -19,13 +34,9 @@ export default function Navigation({ token, onLogout }) {
         <Link to="/">Home</Link>
         {token ? (
           <>
-            <span style={{ marginLeft: "1rem", marginRight: "1rem" }}>
-              (Logged in)
-            </span>
             <button
               onClick={handleLogout}
               style={{
-                background: "#dc3545",
                 padding: "0.5rem 1rem",
                 marginLeft: "1rem",
               }}

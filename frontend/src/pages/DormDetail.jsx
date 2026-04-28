@@ -15,6 +15,7 @@ export default function DormDetail({ token }) {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [submitSuccess, setSubmitSuccess] = useState(false)
+  const [votingReviewId, setVotingReviewId] = useState(null)
 
   useEffect(() => {
     fetchDormDetail()
@@ -83,6 +84,55 @@ export default function DormDetail({ token }) {
       console.error('Submit review error:', err)
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleVote = async (reviewId, voteType, currentUserVote) => {
+    if (!token) {
+      alert('Please log in to vote on reviews')
+      return
+    }
+
+    setVotingReviewId(reviewId)
+
+    try {
+      // If clicking the same vote type, remove the vote; otherwise switch or add
+      const newVoteType = currentUserVote === voteType ? null : voteType
+
+      const response = await fetch(`${API_URL}/api/reviews/${reviewId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          voteType: newVoteType
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        console.error('Vote error:', data.error)
+        return
+      }
+
+      // Update the review with new vote counts
+      setReviews(reviews.map(review => 
+        review.id === reviewId
+          ? {
+              ...review,
+              upvote_count: data.upvote_count,
+              downvote_count: data.downvote_count,
+              net_votes: data.net_votes,
+              user_vote: data.user_vote
+            }
+          : review
+      ))
+    } catch (err) {
+      console.error('Vote submission error:', err)
+    } finally {
+      setVotingReviewId(null)
     }
   }
 
@@ -167,18 +217,77 @@ export default function DormDetail({ token }) {
         {reviews.length === 0 ? (
           <p style={{ color: '#999' }}>No reviews yet. Be the first to review!</p>
         ) : (
-          reviews.map(review => (
-            <div key={review.id} className="review">
-              <div className="review-header">
-                <span className="anonymous-name">{review.anonymous_name}</span>
-                <span className="review-rating">{'★'.repeat(review.rating)}</span>
+          reviews.map(review => {
+            const netVotes = review.net_votes || 0
+            const isPositive = netVotes > 0
+            const isNegative = netVotes < 0
+            const userVote = review.user_vote || null
+
+            return (
+              <div key={review.id} className="review">
+                <div className="review-header">
+                  <span className="anonymous-name">{review.anonymous_name}</span>
+                  <span className="review-rating">{'★'.repeat(review.rating)}</span>
+                </div>
+                <p className="review-comment">{review.comment}</p>
+                <p className="review-date">
+                  {new Date(review.created_at).toLocaleDateString()}
+                </p>
+
+                {/* Vote buttons */}
+                <div style={{
+                  marginTop: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '1rem'
+                }}>
+                  <button
+                    onClick={() => handleVote(review.id, 'upvote', userVote)}
+                    disabled={votingReviewId === review.id}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      background: userVote === 'upvote' ? '#c41e3a' : '#e0e0e0',
+                      color: userVote === 'upvote' ? 'white' : '#333',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    ⬆️
+                  </button>
+
+                  <span style={{
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                    color: isPositive ? '#28a745' : isNegative ? '#c41e3a' : '#666',
+                    minWidth: '40px',
+                    textAlign: 'center'
+                  }}>
+                    {netVotes > 0 ? '+' : ''}{netVotes}
+                  </span>
+
+                  <button
+                    onClick={() => handleVote(review.id, 'downvote', userVote)}
+                    disabled={votingReviewId === review.id}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      background: userVote === 'downvote' ? '#c41e3a' : '#e0e0e0',
+                      color: userVote === 'downvote' ? 'white' : '#333',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontSize: '1.2rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    ⬇️
+                  </button>
+                </div>
               </div>
-              <p className="review-comment">{review.comment}</p>
-              <p className="review-date">
-                {new Date(review.created_at).toLocaleDateString()}
-              </p>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
     </div>
