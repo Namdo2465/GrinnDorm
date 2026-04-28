@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-export default function Verify({ setUserId }) {
+export default function Verify({ setToken }) {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [code, setCode] = useState('')
@@ -59,7 +59,7 @@ export default function Verify({ setUserId }) {
         return
       }
 
-      setUserId(data.user_id)
+      setToken(data.token)
       navigate('/')
     } catch (err) {
       setError('Failed to connect to server. Make sure backend is running.')

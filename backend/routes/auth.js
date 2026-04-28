@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { sendVerificationEmail } = require("../utils/emailService");
+const { generateToken, authenticateToken } = require("../utils/jwtUtils");
 
 // Generate random 6-digit verification code
 function generateVerificationCode() {
@@ -98,12 +99,10 @@ router.post("/signup", async (req, res) => {
 
     if (!emailSent) {
       console.error("Signup: Failed to send email");
-      return res
-        .status(500)
-        .json({
-          error:
-            "User created but failed to send verification email. Please try again.",
-        });
+      return res.status(500).json({
+        error:
+          "User created but failed to send verification email. Please try again.",
+      });
     }
 
     res.status(201).json({
@@ -188,11 +187,9 @@ router.post("/send-code", async (req, res) => {
 
     if (!emailSent) {
       console.error("Send-code: Failed to send email");
-      return res
-        .status(500)
-        .json({
-          error: "Failed to send verification email. Please try again.",
-        });
+      return res.status(500).json({
+        error: "Failed to send verification email. Please try again.",
+      });
     }
 
     res.json({
@@ -273,8 +270,12 @@ router.post("/verify", async (req, res) => {
 
     console.log(`Email verified: ${normalizedEmail}, user_id: ${user.id}`);
 
+    // Generate JWT token
+    const token = generateToken(user.id, normalizedEmail);
+
     res.json({
       success: true,
+      token: token,
       user_id: user.id,
       email: normalizedEmail,
       message: "Email verified successfully",
@@ -283,6 +284,14 @@ router.post("/verify", async (req, res) => {
     console.error("Error in POST /api/auth/verify:", err);
     res.status(500).json({ error: "Internal server error" });
   }
+});
+
+// GET /api/auth/me - Test JWT authentication
+router.get("/me", authenticateToken, (req, res) => {
+  res.json({
+    success: true,
+    user: req.user,
+  });
 });
 
 module.exports = router;

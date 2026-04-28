@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 
-export default function Navigation({ userId, onLogout }) {
+export default function Navigation({ token, onLogout }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -17,7 +17,7 @@ export default function Navigation({ userId, onLogout }) {
       </h1>
       <div>
         <Link to="/">Home</Link>
-        {userId ? (
+        {token ? (
           <>
             <span style={{ marginLeft: "1rem", marginRight: "1rem" }}>
               (Logged in)

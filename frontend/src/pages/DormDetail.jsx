@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-export default function DormDetail({ userId }) {
+export default function DormDetail({ token }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const [dorm, setDorm] = useState(null)
@@ -38,7 +38,7 @@ export default function DormDetail({ userId }) {
   const handleSubmitReview = async (e) => {
     e.preventDefault()
     
-    if (!userId) {
+    if (!token) {
       setSubmitError('Please sign up to submit a review')
       return
     }
@@ -54,10 +54,12 @@ export default function DormDetail({ userId }) {
     try {
       const response = await fetch(`${API_URL}/api/reviews`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           dorm_id: id,
-          user_id: userId,
           rating: parseInt(rating),
           comment
         })
@@ -125,7 +127,7 @@ export default function DormDetail({ userId }) {
         </div>
       </div>
 
-      {userId && (
+      {token && (
         <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', marginBottom: '2rem' }}>
           <h3>Submit a Review</h3>
           {submitError && <div className="error">{submitError}</div>}

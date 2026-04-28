@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
 
 // GET /api/dorms - Get all dorms with average ratings
 router.get("/dorms", async (req, res) => {
@@ -111,16 +112,17 @@ router.get("/dorms/:id", async (req, res) => {
   }
 });
 
-// POST /api/reviews - Submit a new review
-router.post('/reviews', async (req, res) => {
+// POST /api/reviews - Submit a new review (requires valid JWT token)
+router.post('/reviews', authMiddleware, async (req, res) => {
   try {
     const supabase = req.supabase;
-    const { dorm_id, user_id, rating, comment } = req.body;
+    const { dorm_id, rating, comment } = req.body;
+    const user_id = req.user.user_id; // Extract from verified JWT token
 
     // Validate input
-    if (!dorm_id || !user_id || !rating || !comment) {
+    if (!dorm_id || !rating || !comment) {
       console.error('Missing required fields in review submission');
-      return res.status(400).json({ error: 'Missing required fields: dorm_id, user_id, rating, comment' });
+      return res.status(400).json({ error: 'Missing required fields: dorm_id, rating, comment' });
     }
 
     if (rating < 1 || rating > 5 || !Number.isInteger(rating)) {
@@ -158,7 +160,7 @@ router.post('/reviews', async (req, res) => {
       return res.status(500).json({ error: 'Failed to submit review' });
     }
 
-    console.log(`Review submitted for dorm_id ${dorm_id} as ${anonymous_name}`);
+    console.log(`Review submitted for dorm_id ${dorm_id} as ${anonymous_name} by user ${user_id}`);
     res.status(201).json({
       success: true,
       review: newReview[0]

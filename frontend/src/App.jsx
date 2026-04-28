@@ -7,25 +7,25 @@ import Verify from "./pages/Verify";
 import DormDetail from "./pages/DormDetail";
 
 export default function App() {
-  const [userId, setUserId] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUserId = localStorage.getItem("userId");
-    if (storedUserId) {
-      setUserId(storedUserId);
+    const storedToken = localStorage.getItem("token");
+    if (storedToken) {
+      setToken(storedToken);
     }
     setLoading(false);
   }, []);
 
   const handleLogout = () => {
-    setUserId(null);
-    localStorage.removeItem("userId");
+    setToken(null);
+    localStorage.removeItem("token");
   };
 
-  const handleSetUserId = (id) => {
-    setUserId(id);
-    localStorage.setItem("userId", id);
+  const handleSetToken = (newToken) => {
+    setToken(newToken);
+    localStorage.setItem("token", newToken);
   };
 
   if (loading) {
@@ -36,30 +36,30 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <Navigation userId={userId} onLogout={handleLogout} />
+      <Navigation token={token} onLogout={handleLogout} />
       <Routes>
-        <Route path="/" element={<Home userId={userId} />} />
+        <Route path="/" element={<Home token={token} />} />
         <Route
           path="/signup"
           element={
-            userId ? (
+            token ? (
               <Navigate to="/" />
             ) : (
-              <Signup setUserId={handleSetUserId} />
+              <Signup setToken={handleSetToken} />
             )
           }
         />
         <Route
           path="/verify"
           element={
-            userId ? (
+            token ? (
               <Navigate to="/" />
             ) : (
-              <Verify setUserId={handleSetUserId} />
+              <Verify setToken={handleSetToken} />
             )
           }
         />
-        <Route path="/dorms/:id" element={<DormDetail userId={userId} />} />
+        <Route path="/dorms/:id" element={<DormDetail token={token} />} />
       </Routes>
     </BrowserRouter>
   );
