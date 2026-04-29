@@ -45,30 +45,34 @@ router.post("/signup", async (req, res) => {
       return res.status(500).json({ error: "Database error" });
     }
 
-    if (existingUser) {
-      console.error(`Signup: Email already exists - ${normalizedEmail}`);
-      return res.status(409).json({ error: "Email already registered" });
+    let userId = existingUser?.id;
+
+    // If user doesn't exist, create them
+    if (!existingUser) {
+      const { data: newUser, error: createUserError } = await supabase
+        .from("users")
+        .insert([
+          {
+            email: normalizedEmail,
+            verified: false,
+          },
+        ])
+        .select()
+        .single();
+
+      if (createUserError) {
+        console.error("Signup: Error creating user:", createUserError);
+        return res.status(500).json({ error: "Failed to create user" });
+      }
+
+      userId = newUser.id;
+      console.log(`New user created: ${normalizedEmail}, user_id: ${userId}`);
+    } else {
+      console.log(`Existing user logging in: ${normalizedEmail}`);
     }
 
     // Generate verification code
     const verificationCode = generateVerificationCode();
-
-    // Create new user
-    const { data: newUser, error: createUserError } = await supabase
-      .from("users")
-      .insert([
-        {
-          email: normalizedEmail,
-          verified: false,
-        },
-      ])
-      .select()
-      .single();
-
-    if (createUserError) {
-      console.error("Signup: Error creating user:", createUserError);
-      return res.status(500).json({ error: "Failed to create user" });
-    }
 
     // Store verification code
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString(); // 10 minutes
@@ -89,8 +93,6 @@ router.post("/signup", async (req, res) => {
         .json({ error: "Failed to generate verification code" });
     }
 
-    console.log(`User signed up: ${normalizedEmail}, user_id: ${newUser.id}`);
-
     // Send verification code via email
     const emailSent = await sendVerificationEmail(
       normalizedEmail,
@@ -100,16 +102,15 @@ router.post("/signup", async (req, res) => {
     if (!emailSent) {
       console.error("Signup: Failed to send email");
       return res.status(500).json({
-        error:
-          "User created but failed to send verification email. Please try again.",
+        error: "Failed to send verification email. Please try again.",
       });
     }
 
-    res.status(201).json({
+    res.status(200).json({
       success: true,
-      user_id: newUser.id,
+      user_id: userId,
       email: normalizedEmail,
-      message: "Account created! Check your email for the verification code.",
+      message: "Check your email for the verification code.",
     });
   } catch (err) {
     console.error("Error in POST /api/auth/signup:", err);

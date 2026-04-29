@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { X, Star } from 'lucide-react';
+import React from "react";
+import { useState } from "react";
+import { X, Star } from "lucide-react";
 
 interface ReviewModalProps {
   dormName: string;
@@ -9,7 +10,7 @@ interface ReviewModalProps {
 
 export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
   const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -34,7 +35,9 @@ export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           <div>
-            <p className="text-gray-600 mb-4">Reviewing: <span className="font-semibold">{dormName}</span></p>
+            <p className="text-gray-600 mb-4">
+              Reviewing: <span className="font-semibold">{dormName}</span>
+            </p>
           </div>
 
           <div>
@@ -54,8 +57,8 @@ export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
                   <Star
                     className={`w-10 h-10 ${
                       star <= (hoveredRating || rating)
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-300'
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-gray-300"
                     }`}
                   />
                 </button>
@@ -75,7 +78,8 @@ export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
               required
             />
             <p className="text-sm text-gray-500 mt-2">
-              Your review will be posted anonymously as "Anonymous Squirrel #XXX"
+              Your review will be posted anonymously as "Anonymous Squirrel
+              #XXX"
             </p>
           </div>
 

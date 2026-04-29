@@ -1,6 +1,7 @@
-import { Menu, X, ChevronLeft } from 'lucide-react';
-import { useState } from 'react';
-import { SquirrelIcon } from './SquirrelIcon';
+import React from "react";
+import { Menu, X, ChevronLeft } from "lucide-react";
+import { useState } from "react";
+import { SquirrelIcon } from "./SquirrelIcon";
 
 interface HeaderProps {
   userEmail: string;
@@ -9,7 +10,12 @@ interface HeaderProps {
   showBackButton?: boolean;
 }
 
-export function Header({ userEmail, onLogout, onNavigateHome, showBackButton }: HeaderProps) {
+export function Header({
+  userEmail,
+  onLogout,
+  onNavigateHome,
+  showBackButton,
+}: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -26,9 +32,14 @@ export function Header({ userEmail, onLogout, onNavigateHome, showBackButton }: 
                 <span className="hidden sm:inline">Back</span>
               </button>
             )}
-            <button onClick={onNavigateHome} className="flex items-center gap-2">
+            <button
+              onClick={onNavigateHome}
+              className="flex items-center gap-2"
+            >
               <SquirrelIcon className="w-8 h-8 text-grinnell-red" />
-              <span className="text-2xl font-bold text-gray-900">GrinnDorm</span>
+              <span className="text-2xl font-bold text-gray-900">
+                GrinnDorm
+              </span>
             </button>
           </div>
 
@@ -46,7 +57,11 @@ export function Header({ userEmail, onLogout, onNavigateHome, showBackButton }: 
             className="md:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {mobileMenuOpen ? (
+              <X className="w-6 h-6" />
+            ) : (
+              <Menu className="w-6 h-6" />
+            )}
           </button>
         </div>
 

@@ -1,18 +1,31 @@
-import { useState } from 'react';
-import { Star, ChevronUp, ChevronDown, ExternalLink, MessageSquarePlus } from 'lucide-react';
-import { Dorm, Review } from '../App';
-import { ReviewModal } from './ReviewModal';
+import React from "react";
+import { useState } from "react";
+import {
+  Star,
+  ChevronUp,
+  ChevronDown,
+  ExternalLink,
+  MessageSquarePlus,
+} from "lucide-react";
+import { Dorm, Review } from "../App";
+import { ReviewModal } from "./ReviewModal";
 
 interface DormDetailsPageProps {
   dorm: Dorm;
   reviews: Review[];
-  onVote: (reviewId: string, voteType: 'up' | 'down') => void;
+  onVote: (reviewId: string, voteType: "up" | "down") => void;
   onSubmitReview: (dormId: string, rating: number, comment: string) => void;
   onBack: () => void;
   isLoggedIn: boolean;
 }
 
-export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLoggedIn }: DormDetailsPageProps) {
+export function DormDetailsPage({
+  dorm,
+  reviews,
+  onVote,
+  onSubmitReview,
+  isLoggedIn,
+}: DormDetailsPageProps) {
   const [showReviewModal, setShowReviewModal] = useState(false);
 
   const calculateAverage = () => {
@@ -21,10 +34,14 @@ export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLogge
   };
 
   const avgRating = calculateAverage();
-  const ratingDistribution = [5, 4, 3, 2, 1].map(rating => ({
+  const ratingDistribution = [5, 4, 3, 2, 1].map((rating) => ({
     rating,
-    count: reviews.filter(r => r.rating === rating).length,
-    percentage: reviews.length > 0 ? (reviews.filter(r => r.rating === rating).length / reviews.length) * 100 : 0
+    count: reviews.filter((r) => r.rating === rating).length,
+    percentage:
+      reviews.length > 0
+        ? (reviews.filter((r) => r.rating === rating).length / reviews.length) *
+          100
+        : 0,
   }));
 
   const StarRating = ({ rating }: { rating: number }) => {
@@ -33,7 +50,11 @@ export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLogge
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-5 h-5 ${star <= rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
+            className={`w-5 h-5 ${
+              star <= rating
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-gray-300"
+            }`}
           />
         ))}
       </div>
@@ -42,17 +63,22 @@ export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLogge
 
   const VoteButtons = ({ review }: { review: Review }) => {
     const netScore = review.upvotes - review.downvotes;
-    const scoreColor = netScore > 0 ? 'text-upvote-green' : netScore < 0 ? 'text-downvote-red' : 'text-gray-500';
+    const scoreColor =
+      netScore > 0
+        ? "text-upvote-green"
+        : netScore < 0
+        ? "text-downvote-red"
+        : "text-gray-500";
 
     return (
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onVote(review.id, 'up')}
+          onClick={() => onVote(review.id, "up")}
           disabled={!isLoggedIn}
           className={`p-1 rounded transition-colors ${
-            review.userVote === 'up'
-              ? 'bg-upvote-green text-white'
-              : 'text-gray-400 hover:text-upvote-green hover:bg-green-50'
+            review.userVote === "up"
+              ? "bg-upvote-green text-white"
+              : "text-gray-400 hover:text-upvote-green hover:bg-green-50"
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <ChevronUp className="w-5 h-5" />
@@ -61,12 +87,12 @@ export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLogge
           {netScore}
         </span>
         <button
-          onClick={() => onVote(review.id, 'down')}
+          onClick={() => onVote(review.id, "down")}
           disabled={!isLoggedIn}
           className={`p-1 rounded transition-colors ${
-            review.userVote === 'down'
-              ? 'bg-downvote-red text-white'
-              : 'text-gray-400 hover:text-downvote-red hover:bg-red-50'
+            review.userVote === "down"
+              ? "bg-downvote-red text-white"
+              : "text-gray-400 hover:text-downvote-red hover:bg-red-50"
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <ChevronDown className="w-5 h-5" />
@@ -90,11 +116,13 @@ export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLogge
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="text-4xl font-bold text-gray-900">
-                  {avgRating > 0 ? avgRating.toFixed(1) : 'N/A'}
+                  {avgRating > 0 ? avgRating.toFixed(1) : "N/A"}
                 </div>
                 <div>
                   <StarRating rating={Math.round(avgRating)} />
-                  <p className="text-sm text-gray-600 mt-1">{reviews.length} reviews</p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {reviews.length} reviews
+                  </p>
                 </div>
               </div>
 
@@ -142,15 +170,19 @@ export function DormDetailsPage({ dorm, reviews, onVote, onSubmitReview, isLogge
 
         {reviews.length === 0 ? (
           <div className="bg-white rounded-lg shadow p-12 text-center">
-            <p className="text-gray-500">No reviews yet. Be the first to share your experience!</p>
+            <p className="text-gray-500">
+              No reviews yet. Be the first to share your experience!
+            </p>
           </div>
         ) : (
-          reviews.map(review => (
+          reviews.map((review) => (
             <div key={review.id} className="bg-white rounded-lg shadow p-6">
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-semibold text-gray-900">{review.author}</span>
+                    <span className="font-semibold text-gray-900">
+                      {review.author}
+                    </span>
                     <span className="text-sm text-gray-500">{review.date}</span>
                   </div>
                   <StarRating rating={review.rating} />
