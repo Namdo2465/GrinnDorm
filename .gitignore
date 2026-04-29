@@ -1,0 +1,5 @@
+# Backups (don't commit)
+frontend.backup/
+
+# Node dependencies (already in each folder's node_modules)
+node_modules/
