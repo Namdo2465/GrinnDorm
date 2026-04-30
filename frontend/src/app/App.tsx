@@ -138,6 +138,52 @@ export default function App() {
     fetchDorms();
   }, []);
 
+  // Fetch all reviews from all dorms for homepage display
+  useEffect(() => {
+    if (dorms.length === 0) return;
+
+    const fetchAllReviews = async () => {
+      try {
+        // Fetch all dorm reviews in parallel
+        const reviewPromises = dorms.map(async (dorm) => {
+          try {
+            const response = await fetch(API_ENDPOINTS.GET_DORM(dorm.id));
+            if (!response.ok) return [];
+
+            const data = await response.json();
+            if (data.reviews && Array.isArray(data.reviews)) {
+              return data.reviews.map((review: any) => ({
+                id: review.id,
+                dormId: dorm.id,
+                rating: review.rating,
+                comment: review.comment,
+                author: review.anonymous_name || "Anonymous",
+                date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+                upvotes: review.upvotes || 0,
+                downvotes: review.downvotes || 0,
+                userVote: null,
+              }));
+            }
+            return [];
+          } catch (err) {
+            console.error(`Error fetching reviews for dorm ${dorm.id}:`, err);
+            return [];
+          }
+        });
+
+        // Wait for all requests to complete
+        const results = await Promise.all(reviewPromises);
+        const allReviews = results.flat();
+        setReviews(allReviews.length > 0 ? allReviews : INITIAL_REVIEWS);
+      } catch (err) {
+        console.error("Error fetching all reviews:", err);
+        setReviews(INITIAL_REVIEWS);
+      }
+    };
+
+    fetchAllReviews();
+  }, [dorms]);
+
   // Fetch reviews for selected dorm from backend
   useEffect(() => {
     if (!selectedDormId) return;
