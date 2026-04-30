@@ -49,7 +49,7 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
     return matchesSearch && matchesCampus && matchesRating;
   });
 
-  const nearbyDorms = filteredDorms.slice(0, 6);
+  const nearbyDorms = filteredDorms;
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (mapRef.current) {
@@ -251,11 +251,6 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
                 })
               )}
             </div>
-            {filteredDorms.length > 6 && (
-              <p className="text-sm text-gray-500 mt-4 text-center">
-                +{filteredDorms.length - 6} more dorms
-              </p>
-            )}
           </div>
         </div>
       </div>

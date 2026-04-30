@@ -4,6 +4,7 @@ import { AuthPage } from "./components/AuthPage";
 import { HomePage } from "./components/HomePage";
 import { DormDetailsPage } from "./components/DormDetailsPage";
 import { Header } from "./components/Header";
+import { API_ENDPOINTS } from "../config/api";
 
 export interface Review {
   id: string;
@@ -24,149 +25,6 @@ export interface Dorm {
   campus: string;
   officialLink?: string;
 }
-
-const DORMS: Dorm[] = [
-  {
-    id: "younker",
-    name: "Younker Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "smith",
-    name: "Smith Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "langan",
-    name: "Langan Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "rawson",
-    name: "Rawson Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "gates",
-    name: "Gates Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "clark",
-    name: "Clark Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "cowles",
-    name: "Cowles Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "dibble",
-    name: "Dibble Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "norris",
-    name: "Norris Hall",
-    description: "North Campus residence hall",
-    campus: "North Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "loose",
-    name: "Loose Hall",
-    description: "South Campus residence hall",
-    campus: "South Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "read",
-    name: "Read Hall",
-    description: "South Campus residence hall",
-    campus: "South Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "haines",
-    name: "Haines Hall",
-    description: "South Campus residence hall",
-    campus: "South Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "james",
-    name: "James Hall",
-    description: "South Campus residence hall",
-    campus: "South Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "cleveland",
-    name: "Cleveland Hall",
-    description: "South Campus residence hall",
-    campus: "South Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "main",
-    name: "Main Hall",
-    description: "South Campus residence hall",
-    campus: "South Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "lazier",
-    name: "Lazier Hall",
-    description: "East Campus residence hall",
-    campus: "East Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "kershaw",
-    name: "Kershaw Hall",
-    description: "East Campus residence hall",
-    campus: "East Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "rose",
-    name: "Rose Hall",
-    description: "East Campus residence hall",
-    campus: "East Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "rathje",
-    name: "Rathje Hall",
-    description: "East Campus residence hall",
-    campus: "East Campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-  {
-    id: "renfrow",
-    name: "Renfrow Hall",
-    description: "Off-campus residence hall",
-    campus: "Off-campus",
-    officialLink: "https://www.grinnell.edu/campus-life/housing",
-  },
-];
 
 const INITIAL_REVIEWS: Review[] = [
   {
@@ -224,6 +82,9 @@ export default function App() {
   );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [dorms, setDorms] = useState<Dorm[]>([]);
+  const [dormLoading, setDormLoading] = useState(false);
+  const [dormError, setDormError] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [selectedDormId, setSelectedDormId] = useState<string | null>(null);
 
@@ -236,6 +97,82 @@ export default function App() {
       setCurrentPage("home");
     }
   }, []);
+
+  // Fetch dorms from backend
+  useEffect(() => {
+    const fetchDorms = async () => {
+      try {
+        setDormLoading(true);
+        setDormError(null);
+        const response = await fetch(API_ENDPOINTS.GET_DORMS);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch dorms: ${response.statusText}`);
+        }
+        const data = await response.json();
+        // Backend returns dorms with rating data; format to match Dorm interface
+        const formattedDorms = data.map((dorm: any) => {
+          // Transform campus value: "North" -> "North Campus", "Off-campus" stays as is
+          let campus = dorm.campus;
+          if (dorm.campus !== "Off-campus") {
+            campus = `${dorm.campus} Campus`;
+          }
+          return {
+            id: dorm.id,
+            name: dorm.name,
+            description: `${dorm.name} residence hall`,
+            campus,
+            officialLink: dorm.external_link,
+          };
+        });
+        setDorms(formattedDorms);
+      } catch (err) {
+        console.error("Error fetching dorms:", err);
+        setDormError(
+          err instanceof Error ? err.message : "Failed to load dorms"
+        );
+      } finally {
+        setDormLoading(false);
+      }
+    };
+
+    fetchDorms();
+  }, []);
+
+  // Fetch reviews for selected dorm from backend
+  useEffect(() => {
+    if (!selectedDormId) return;
+
+    const fetchDormReviews = async () => {
+      try {
+        const response = await fetch(API_ENDPOINTS.GET_DORM(selectedDormId));
+        if (!response.ok) {
+          throw new Error(`Failed to fetch reviews: ${response.statusText}`);
+        }
+        const data = await response.json();
+        
+        // Format reviews from backend to match Review interface
+        if (data.reviews && Array.isArray(data.reviews)) {
+          const formattedReviews = data.reviews.map((review: any) => ({
+            id: review.id,
+            dormId: selectedDormId,
+            rating: review.rating,
+            comment: review.comment,
+            author: review.anonymous_name || "Anonymous",
+            date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+            upvotes: review.upvotes || 0,
+            downvotes: review.downvotes || 0,
+            userVote: null,
+          }));
+          setReviews(formattedReviews);
+        }
+      } catch (err) {
+        console.error("Error fetching reviews for dorm:", err);
+        // Keep existing reviews if fetch fails
+      }
+    };
+
+    fetchDormReviews();
+  }, [selectedDormId]);
 
   const handleLogin = (email: string) => {
     setIsLoggedIn(true);
@@ -337,16 +274,29 @@ export default function App() {
       )}
 
       {currentPage === "home" && isLoggedIn && (
-        <HomePage
-          dorms={DORMS}
-          reviews={reviews}
-          onDormClick={handleDormClick}
-        />
+        <>
+          {dormError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded m-4">
+              <p>Error loading dorms: {dormError}</p>
+            </div>
+          )}
+          {dormLoading ? (
+            <div className="flex items-center justify-center min-h-screen">
+              <p className="text-gray-600">Loading dorms...</p>
+            </div>
+          ) : (
+            <HomePage
+              dorms={dorms}
+              reviews={reviews}
+              onDormClick={handleDormClick}
+            />
+          )}
+        </>
       )}
 
       {currentPage === "dorm" && isLoggedIn && selectedDormId && (
         <DormDetailsPage
-          dorm={DORMS.find((d) => d.id === selectedDormId)!}
+          dorm={dorms.find((d) => d.id === selectedDormId)!}
           reviews={reviews.filter((r) => r.dormId === selectedDormId)}
           onVote={handleVote}
           onSubmitReview={handleSubmitReview}

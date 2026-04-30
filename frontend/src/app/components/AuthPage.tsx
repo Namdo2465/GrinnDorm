@@ -19,8 +19,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
     e.preventDefault();
     setError("");
 
-    if (!email.includes("@grinnell.edu")) {
-      setError("Please use your Grinnell College email address");
+    // Basic email validation
+    if (!email.includes("@") || !email.includes(".")) {
+      setError("Please enter a valid email address");
       return;
     }
 
@@ -109,7 +110,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                   Welcome!
                 </h2>
                 <p className="text-gray-600">
-                  Enter your Grinnell email to get started
+                  Enter your email to get started
                 </p>
               </div>
 
@@ -123,7 +124,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="your.name@grinnell.edu"
+                    placeholder="your.email@example.com"
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-grinnell-red focus:border-transparent"
                     required
                   />
