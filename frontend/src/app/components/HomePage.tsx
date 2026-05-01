@@ -154,17 +154,21 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
           <div className="bg-white rounded-lg shadow-lg overflow-hidden">
             <div
               ref={mapRef}
-              className="relative aspect-[4/3] bg-gradient-to-br from-green-100 via-green-50 to-blue-50 cursor-move select-none"
+              className="relative cursor-move select-none"
               onMouseMove={handleMouseMove}
             >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <MapPin className="w-16 h-16 text-grinnell-red mx-auto opacity-20" />
-                  <p className="text-gray-500 text-lg">
+              <img
+                src="/CampusMap.png"
+                alt="Grinnell College Campus Map"
+                className="w-full h-auto object-contain"
+              />
+              <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg p-4 shadow-md">
+                <div className="space-y-1">
+                  <p className="text-gray-900 font-semibold text-sm">
                     Grinnell College Campus
                   </p>
-                  <p className="text-sm text-gray-400">
-                    Drag the squirrel to explore nearby dorms
+                  <p className="text-gray-600 text-xs">
+                    Drag the squirrel or hover over dorms
                   </p>
                 </div>
               </div>
