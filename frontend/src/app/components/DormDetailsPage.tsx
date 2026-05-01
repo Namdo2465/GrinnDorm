@@ -199,9 +199,8 @@ export function DormDetailsPage({
         <ReviewModal
           dormName={dorm.name}
           onClose={() => setShowReviewModal(false)}
-          onSubmit={(rating, comment) => {
-            onSubmitReview(dorm.id, rating, comment);
-            setShowReviewModal(false);
+          onSubmit={async (rating, comment) => {
+            await onSubmitReview(dorm.id, rating, comment);
           }}
         />
       )}

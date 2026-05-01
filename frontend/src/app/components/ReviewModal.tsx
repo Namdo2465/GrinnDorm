@@ -5,18 +5,27 @@ import { X, Star } from "lucide-react";
 interface ReviewModalProps {
   dormName: string;
   onClose: () => void;
-  onSubmit: (rating: number, comment: string) => void;
+  onSubmit: (rating: number, comment: string) => Promise<void>;
 }
 
 export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (comment.trim()) {
-      onSubmit(rating, comment);
+      setIsSubmitting(true);
+      try {
+        await onSubmit(rating, comment);
+        onClose();
+      } catch (err) {
+        console.error("Error submitting review:", err);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -93,10 +102,10 @@ export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
             </button>
             <button
               type="submit"
-              disabled={!comment.trim()}
+              disabled={!comment.trim() || isSubmitting}
               className="flex-1 px-6 py-3 bg-grinnell-red text-white rounded-lg hover:bg-grinnell-red-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
-              Submit Review
+              {isSubmitting ? "Submitting..." : "Submit Review"}
             </button>
           </div>
         </form>

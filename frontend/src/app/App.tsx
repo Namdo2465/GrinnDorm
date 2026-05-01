@@ -86,6 +86,7 @@ export default function App() {
   const [dormLoading, setDormLoading] = useState(false);
   const [dormError, setDormError] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [selectedDormReviews, setSelectedDormReviews] = useState<Review[]>([]);
   const [selectedDormId, setSelectedDormId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -159,9 +160,9 @@ export default function App() {
                 comment: review.comment,
                 author: review.anonymous_name || "Anonymous",
                 date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-                upvotes: review.upvotes || 0,
-                downvotes: review.downvotes || 0,
-                userVote: null,
+                upvotes: review.upvote_count || 0,
+                downvotes: review.downvote_count || 0,
+                userVote: review.user_vote || null,
               }));
             }
             return [];
@@ -205,15 +206,15 @@ export default function App() {
             comment: review.comment,
             author: review.anonymous_name || "Anonymous",
             date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-            upvotes: review.upvotes || 0,
-            downvotes: review.downvotes || 0,
-            userVote: null,
+            upvotes: review.upvote_count || 0,
+            downvotes: review.downvote_count || 0,
+            userVote: review.user_vote || null,
           }));
-          setReviews(formattedReviews);
+          setSelectedDormReviews(formattedReviews);
         }
       } catch (err) {
         console.error("Error fetching reviews for dorm:", err);
-        // Keep existing reviews if fetch fails
+        setSelectedDormReviews([]);
       }
     };
 
@@ -284,24 +285,57 @@ export default function App() {
     );
   };
 
-  const handleSubmitReview = (
+  const handleSubmitReview = async (
     dormId: string,
     rating: number,
     comment: string
   ) => {
-    const anonymousNumber = Math.floor(Math.random() * 999) + 1;
-    const newReview: Review = {
-      id: Date.now().toString(),
-      dormId,
-      rating,
-      comment,
-      author: `Anonymous Squirrel #${anonymousNumber}`,
-      date: new Date().toISOString().split("T")[0],
-      upvotes: 0,
-      downvotes: 0,
-      userVote: null,
-    };
-    setReviews([newReview, ...reviews]);
+    try {
+      const token = localStorage.getItem("grinnDormToken");
+      if (!token) {
+        console.error("No auth token found");
+        return;
+      }
+
+      const response = await fetch(API_ENDPOINTS.POST_REVIEW, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          dorm_id: dormId,
+          rating,
+          comment,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to submit review: ${response.statusText}`);
+      }
+
+      const responseData = await response.json();
+      const newReviewData = responseData.review;
+      
+      // Create Review object from backend response
+      const newReview: Review = {
+        id: newReviewData.id,
+        dormId,
+        rating: newReviewData.rating,
+        comment: newReviewData.comment,
+        author: newReviewData.anonymous_name || "Anonymous",
+        date: newReviewData.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+        upvotes: newReviewData.upvote_count || 0,
+        downvotes: newReviewData.downvote_count || 0,
+        userVote: null,
+      };
+
+      // Update both reviews arrays
+      setSelectedDormReviews([newReview, ...selectedDormReviews]);
+      setReviews([newReview, ...reviews]);
+    } catch (err) {
+      console.error("Error submitting review:", err);
+    }
   };
 
   return (
@@ -343,7 +377,7 @@ export default function App() {
       {currentPage === "dorm" && isLoggedIn && selectedDormId && (
         <DormDetailsPage
           dorm={dorms.find((d) => d.id === selectedDormId)!}
-          reviews={reviews.filter((r) => r.dormId === selectedDormId)}
+          reviews={selectedDormReviews}
           onVote={handleVote}
           onSubmitReview={handleSubmitReview}
           onBack={handleBackToHome}
