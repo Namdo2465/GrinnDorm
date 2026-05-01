@@ -105,7 +105,9 @@ export default function App() {
       try {
         setDormLoading(true);
         setDormError(null);
-        const response = await fetch(API_ENDPOINTS.GET_DORMS);
+        const token = localStorage.getItem("grinnDormToken");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await fetch(API_ENDPOINTS.GET_DORMS, { headers });
         if (!response.ok) {
           throw new Error(`Failed to fetch dorms: ${response.statusText}`);
         }
@@ -146,24 +148,30 @@ export default function App() {
     const fetchAllReviews = async () => {
       try {
         // Fetch all dorm reviews in parallel
+        const token = localStorage.getItem("grinnDormToken");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const reviewPromises = dorms.map(async (dorm) => {
           try {
-            const response = await fetch(API_ENDPOINTS.GET_DORM(dorm.id));
+            const response = await fetch(API_ENDPOINTS.GET_DORM(dorm.id), { headers });
             if (!response.ok) return [];
 
             const data = await response.json();
             if (data.reviews && Array.isArray(data.reviews)) {
-              return data.reviews.map((review: any) => ({
-                id: review.id,
-                dormId: dorm.id,
-                rating: review.rating,
-                comment: review.comment,
-                author: review.anonymous_name || "Anonymous",
-                date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-                upvotes: review.upvote_count || 0,
-                downvotes: review.downvote_count || 0,
-                userVote: review.user_vote || null,
-              }));
+              return data.reviews.map((review: any) => {
+                // Convert backend vote type (upvote/downvote) to frontend format (up/down)
+                const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
+                return {
+                  id: review.id,
+                  dormId: dorm.id,
+                  rating: review.rating,
+                  comment: review.comment,
+                  author: review.anonymous_name || "Anonymous",
+                  date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+                  upvotes: review.upvote_count || 0,
+                  downvotes: review.downvote_count || 0,
+                  userVote,
+                };
+              });
             }
             return [];
           } catch (err) {
@@ -189,9 +197,14 @@ export default function App() {
   useEffect(() => {
     if (!selectedDormId) return;
 
+    // Clear reviews immediately when dorm changes to prevent showing old dorm's reviews
+    setSelectedDormReviews([]);
+
     const fetchDormReviews = async () => {
       try {
-        const response = await fetch(API_ENDPOINTS.GET_DORM(selectedDormId));
+        const token = localStorage.getItem("grinnDormToken");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const response = await fetch(API_ENDPOINTS.GET_DORM(selectedDormId), { headers });
         if (!response.ok) {
           throw new Error(`Failed to fetch reviews: ${response.statusText}`);
         }
@@ -199,17 +212,21 @@ export default function App() {
         
         // Format reviews from backend to match Review interface
         if (data.reviews && Array.isArray(data.reviews)) {
-          const formattedReviews = data.reviews.map((review: any) => ({
-            id: review.id,
-            dormId: selectedDormId,
-            rating: review.rating,
-            comment: review.comment,
-            author: review.anonymous_name || "Anonymous",
-            date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
-            upvotes: review.upvote_count || 0,
-            downvotes: review.downvote_count || 0,
-            userVote: review.user_vote || null,
-          }));
+          const formattedReviews = data.reviews.map((review: any) => {
+            // Convert backend vote type (upvote/downvote) to frontend format (up/down)
+            const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
+            return {
+              id: review.id,
+              dormId: selectedDormId,
+              rating: review.rating,
+              comment: review.comment,
+              author: review.anonymous_name || "Anonymous",
+              date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              upvotes: review.upvote_count || 0,
+              downvotes: review.downvote_count || 0,
+              userVote,
+            };
+          });
           setSelectedDormReviews(formattedReviews);
         }
       } catch (err) {
@@ -247,42 +264,83 @@ export default function App() {
     setCurrentPage("home");
   };
 
-  const handleVote = (reviewId: string, voteType: "up" | "down") => {
+  const handleVote = async (reviewId: string, voteType: "up" | "down") => {
     if (!isLoggedIn) return;
 
-    setReviews(
-      reviews.map((review) => {
-        if (review.id === reviewId) {
-          const currentVote = review.userVote;
-          let newUpvotes = review.upvotes;
-          let newDownvotes = review.downvotes;
-          let newUserVote: "up" | "down" | null = voteType;
+    try {
+      const token = localStorage.getItem("grinnDormToken");
+      if (!token) {
+        console.error("No auth token found");
+        return;
+      }
 
-          if (currentVote === voteType) {
-            newUserVote = null;
-            if (voteType === "up") newUpvotes--;
-            else newDownvotes--;
-          } else if (currentVote === "up" && voteType === "down") {
-            newUpvotes--;
-            newDownvotes++;
-          } else if (currentVote === "down" && voteType === "up") {
-            newDownvotes--;
-            newUpvotes++;
-          } else {
-            if (voteType === "up") newUpvotes++;
-            else newDownvotes++;
-          }
+      // Determine what vote to send (toggle if already voted same type)
+      const reviewToUpdate = [...reviews, ...selectedDormReviews].find(
+        (r) => r.id === reviewId
+      );
+      if (!reviewToUpdate) return;
 
-          return {
-            ...review,
-            upvotes: newUpvotes,
-            downvotes: newDownvotes,
-            userVote: newUserVote,
-          };
-        }
-        return review;
-      })
-    );
+      const currentVote = reviewToUpdate.userVote;
+      let voteToSend: string | null;
+
+      // If clicking same vote, toggle it off
+      if (currentVote === voteType) {
+        voteToSend = null;
+      } else {
+        voteToSend = voteType === "up" ? "upvote" : "downvote";
+      }
+
+      // Send vote to backend
+      const response = await fetch(API_ENDPOINTS.VOTE_REVIEW(reviewId), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ voteType: voteToSend }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to submit vote: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Update UI with actual counts from backend
+      const newUserVote =
+        data.user_vote === "upvote"
+          ? "up"
+          : data.user_vote === "downvote"
+          ? "down"
+          : null;
+
+      setReviews(
+        reviews.map((r) =>
+          r.id === reviewId
+            ? {
+                ...r,
+                upvotes: data.upvote_count,
+                downvotes: data.downvote_count,
+                userVote: newUserVote,
+              }
+            : r
+        )
+      );
+      setSelectedDormReviews(
+        selectedDormReviews.map((r) =>
+          r.id === reviewId
+            ? {
+                ...r,
+                upvotes: data.upvote_count,
+                downvotes: data.downvote_count,
+                userVote: newUserVote,
+              }
+            : r
+        )
+      );
+    } catch (err) {
+      console.error("Error submitting vote:", err);
+    }
   };
 
   const handleSubmitReview = async (

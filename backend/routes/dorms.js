@@ -2,8 +2,19 @@ const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 
+// Optional auth middleware - extracts user if token present, continues if not
+const optionalAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    req.user = null;
+    return next();
+  }
+  // Verify the token and extract user
+  authMiddleware(req, res, next);
+};
+
 // GET /api/dorms - Get all dorms with average ratings
-router.get("/dorms", async (req, res) => {
+router.get("/dorms", optionalAuth, async (req, res) => {
   try {
     const supabase = req.supabase;
 
@@ -58,10 +69,11 @@ router.get("/dorms", async (req, res) => {
 });
 
 // GET /api/dorms/:id - Get a single dorm with all its reviews
-router.get("/dorms/:id", async (req, res) => {
+router.get("/dorms/:id", optionalAuth, async (req, res) => {
   try {
     const supabase = req.supabase;
     const dormId = req.params.id;
+    const userId = req.user?.user_id || null;
 
     // Query the specific dorm
     const { data: dorm, error: dormError } = await supabase
@@ -110,12 +122,27 @@ router.get("/dorms/:id", async (req, res) => {
         const upvote_count = votes.filter(v => v.vote_type === 'upvote').length;
         const downvote_count = votes.filter(v => v.vote_type === 'downvote').length;
 
+        // If user is logged in, check if they voted on this review
+        let userVote = null;
+        if (userId) {
+          const { data: userVoteData, error: userVoteError } = await supabase
+            .from('review_votes')
+            .select('vote_type')
+            .eq('review_id', review.id)
+            .eq('user_id', userId)
+            .single();
+
+          if (!userVoteError && userVoteData) {
+            userVote = userVoteData.vote_type;
+          }
+        }
+
         return {
           ...review,
           upvote_count,
           downvote_count,
           net_votes: upvote_count - downvote_count,
-          user_vote: null // Will be populated by frontend if user is logged in
+          user_vote: userVote
         };
       })
     );

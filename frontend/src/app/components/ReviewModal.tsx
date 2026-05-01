@@ -87,8 +87,7 @@ export function ReviewModal({ dormName, onClose, onSubmit }: ReviewModalProps) {
               required
             />
             <p className="text-sm text-gray-500 mt-2">
-              Your review will be posted anonymously as "Anonymous Squirrel
-              #XXX"
+              Your review will be posted anonymously as "Anonymous Animal #XXX"
             </p>
           </div>
 
