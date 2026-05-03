@@ -10,6 +10,31 @@ interface HomePageProps {
   onDormClick: (dormId: string) => void;
 }
 
+// Mapping of dorm names to their positions on the map (in percentages)
+// Adjust these coordinates once you know the exact positions
+const DORM_POSITIONS: Record<string, { x: number; y: number }> = {
+  "Younker Hall": { x: 44, y: 42 },
+  "Smith Hall": { x: 40, y: 39 },
+  "Langan Hall": { x: 38.5, y: 36.7 },
+  "Rawson Hall": { x: 38.5, y: 34 },
+  "Gates Hall": { x: 38.5, y: 32 },
+  "Clark Hall": { x: 38.5, y: 28 },
+  "Cowles Hall": { x: 46, y: 26 },
+  "Dibble Hall": { x: 38.5, y: 26 },
+  "Norris Hall": { x: 41.5, y: 21 },
+  "Loose Hall": { x: 86, y: 53 },
+  "Read Hall": { x: 86, y: 59 },
+  "Haines Hall": { x: 86, y: 62 },
+  "James Hall": { x: 86, y: 66 },
+  "Cleveland Hall": { x: 86, y: 69 },
+  "Main Hall": { x: 84, y: 74 },
+  "Lazier Hall": { x: 86.5, y: 45 },
+  "Kershaw Hall": { x: 87.5, y: 39 },
+  "Rose Hall": { x: 87.5, y: 33 },
+  "Rathje Hall": { x: 87.5, y: 27 },
+  "Renfrow Hall": { x: 11, y: 86 },
+};
+
 export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCampus, setSelectedCampus] = useState<string>("All");
@@ -17,6 +42,7 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
   const [squirrelPosition, setSquirrelPosition] = useState({ x: 50, y: 50 });
   const [isDragging, setIsDragging] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [hoveredDormName, setHoveredDormName] = useState<string | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
 
   const campusOptions = [
@@ -186,6 +212,19 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
                 <SquirrelIcon className="w-full h-full text-grinnell-red drop-shadow-lg" />
               </div>
 
+              {/* Dorm pin - appears on hover */}
+              {hoveredDormName && DORM_POSITIONS[hoveredDormName] && (
+                <div
+                  className="absolute -translate-x-1/2 -translate-y-full pointer-events-none animate-bounce"
+                  style={{
+                    left: `${DORM_POSITIONS[hoveredDormName].x}%`,
+                    top: `${DORM_POSITIONS[hoveredDormName].y}%`,
+                  }}
+                >
+                  <MapPin className="w-8 h-8 text-grinnell-red drop-shadow-lg" />
+                </div>
+              )}
+
               {[
                 { x: 25, y: 30, label: "North", color: "bg-blue-500" },
                 { x: 50, y: 60, label: "Center", color: "bg-green-500" },
@@ -230,6 +269,8 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
                     <div
                       key={dorm.id}
                       onClick={() => onDormClick(dorm.id)}
+                      onMouseEnter={() => setHoveredDormName(dorm.name)}
+                      onMouseLeave={() => setHoveredDormName(null)}
                       className="p-4 border border-gray-200 rounded-lg hover:border-grinnell-red hover:shadow-md transition-all cursor-pointer"
                     >
                       <h3 className="font-semibold text-gray-900">
