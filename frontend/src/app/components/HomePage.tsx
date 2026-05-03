@@ -61,6 +61,10 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
     );
   };
 
+  const calculateDistance = (x1: number, y1: number, x2: number, y2: number) => {
+    return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+  };
+
   const filteredDorms = dorms.filter((dorm) => {
     const matchesSearch = dorm.name
       .toLowerCase()
@@ -75,7 +79,26 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
     return matchesSearch && matchesCampus && matchesRating;
   });
 
-  const nearbyDorms = filteredDorms;
+  // Determine which dorms to display: if filters are active, use filtered; otherwise use all
+  const dormsToDisplay = (searchQuery || selectedCampus !== 'All' || selectedRating !== 'All') 
+    ? filteredDorms 
+    : dorms;
+
+  const dormsWithDistance = dormsToDisplay
+    .map(dorm => {
+      const dormPos = DORM_POSITIONS[dorm.name];
+      if (!dormPos) return { dorm, distance: Infinity };
+      const distance = calculateDistance(
+        squirrelPosition.x,
+        squirrelPosition.y,
+        dormPos.x,
+        dormPos.y
+      );
+      return { dorm, distance };
+    })
+    .sort((a, b) => a.distance - b.distance);
+
+  const nearbyDorms = dormsWithDistance.map(d => d.dorm);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (mapRef.current) {
@@ -224,24 +247,6 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
                   <MapPin className="w-8 h-8 text-grinnell-red drop-shadow-lg" />
                 </div>
               )}
-
-              {[
-                { x: 25, y: 30, label: "North", color: "bg-blue-500" },
-                { x: 50, y: 60, label: "Center", color: "bg-green-500" },
-                { x: 75, y: 35, label: "East", color: "bg-purple-500" },
-                { x: 45, y: 75, label: "South", color: "bg-orange-500" },
-              ].map((building, i) => (
-                <div
-                  key={i}
-                  className={`absolute w-8 h-8 ${building.color} rounded opacity-30 hover:opacity-60 transition-opacity`}
-                  style={{
-                    left: `${building.x}%`,
-                    top: `${building.y}%`,
-                    transform: "translate(-50%, -50%)",
-                  }}
-                  title={`${building.label} Campus Area`}
-                />
-              ))}
             </div>
           </div>
         </div>
@@ -249,12 +254,11 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
         <div className="lg:col-span-1">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {searchQuery ||
-              selectedCampus !== "All" ||
-              selectedRating !== "All"
-                ? "Filtered Dorms"
-                : "Nearby Dorms"}
+              Nearby Dorms
             </h2>
+            {(searchQuery || selectedCampus !== 'All' || selectedRating !== 'All') && (
+              <p className="text-sm text-gray-600 mb-4">Showing closest matches to squirrel position</p>
+            )}
             <div className="space-y-3 max-h-[500px] overflow-y-auto">
               {nearbyDorms.length === 0 ? (
                 <p className="text-gray-500 text-center py-8">No dorms found</p>

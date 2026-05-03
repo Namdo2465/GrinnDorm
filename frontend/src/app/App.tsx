@@ -56,7 +56,7 @@ export default function App() {
         setDormLoading(true);
         setDormError(null);
         const token = localStorage.getItem("grinnDormToken");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
         const response = await fetch(API_ENDPOINTS.GET_DORMS, { headers });
         if (!response.ok) {
           throw new Error(`Failed to fetch dorms: ${response.statusText}`);
@@ -99,7 +99,7 @@ export default function App() {
       try {
         // Fetch all dorm reviews in parallel
         const token = localStorage.getItem("grinnDormToken");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
         const reviewPromises = dorms.map(async (dorm) => {
           try {
             const response = await fetch(API_ENDPOINTS.GET_DORM(dorm.id), { headers });
@@ -153,7 +153,7 @@ export default function App() {
     const fetchDormReviews = async () => {
       try {
         const token = localStorage.getItem("grinnDormToken");
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
         const response = await fetch(API_ENDPOINTS.GET_DORM(selectedDormId), { headers });
         if (!response.ok) {
           throw new Error(`Failed to fetch reviews: ${response.statusText}`);
