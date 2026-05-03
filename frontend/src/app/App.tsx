@@ -26,56 +26,6 @@ export interface Dorm {
   officialLink?: string;
 }
 
-const INITIAL_REVIEWS: Review[] = [
-  {
-    id: "1",
-    dormId: "younker",
-    rating: 5,
-    comment:
-      "Great location and clean facilities! Really enjoyed my time here.",
-    author: "Anonymous Squirrel #42",
-    date: "2026-04-15",
-    upvotes: 12,
-    downvotes: 2,
-    userVote: null,
-  },
-  {
-    id: "2",
-    dormId: "younker",
-    rating: 4,
-    comment:
-      "Nice dorm but can get noisy on weekends. Overall good experience though.",
-    author: "Anonymous Squirrel #17",
-    date: "2026-04-10",
-    upvotes: 8,
-    downvotes: 3,
-    userVote: null,
-  },
-  {
-    id: "3",
-    dormId: "smith",
-    rating: 5,
-    comment: "Love the community here and the study lounges are top-notch!",
-    author: "Anonymous Squirrel #89",
-    date: "2026-04-20",
-    upvotes: 15,
-    downvotes: 1,
-    userVote: null,
-  },
-  {
-    id: "4",
-    dormId: "loose",
-    rating: 3,
-    comment:
-      "Good community but needs some renovation. Location is convenient.",
-    author: "Anonymous Squirrel #23",
-    date: "2026-04-05",
-    upvotes: 5,
-    downvotes: 7,
-    userVote: null,
-  },
-];
-
 export default function App() {
   const [currentPage, setCurrentPage] = useState<"auth" | "home" | "dorm">(
     "auth"
@@ -85,7 +35,7 @@ export default function App() {
   const [dorms, setDorms] = useState<Dorm[]>([]);
   const [dormLoading, setDormLoading] = useState(false);
   const [dormError, setDormError] = useState<string | null>(null);
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [selectedDormReviews, setSelectedDormReviews] = useState<Review[]>([]);
   const [selectedDormId, setSelectedDormId] = useState<string | null>(null);
 
@@ -183,10 +133,10 @@ export default function App() {
         // Wait for all requests to complete
         const results = await Promise.all(reviewPromises);
         const allReviews = results.flat();
-        setReviews(allReviews.length > 0 ? allReviews : INITIAL_REVIEWS);
+        setReviews(allReviews);
       } catch (err) {
         console.error("Error fetching all reviews:", err);
-        setReviews(INITIAL_REVIEWS);
+        setReviews([]);
       }
     };
 
