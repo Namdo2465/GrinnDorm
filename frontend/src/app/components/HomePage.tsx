@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useRef, useEffect } from "react";
-import { Search, Filter, MapPin, Star } from "lucide-react";
+import { Search, Filter, MapPin, Star, MapIcon, Instagram } from "lucide-react";
 import { Dorm, Review } from "../App";
 
 interface HomePageProps {
@@ -209,6 +209,43 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Quick Links Section */}
+              <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                  Explore More
+                </h3>
+                <a
+                  href="https://www.youvisit.com/tour/grinnell"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-red-50 to-pink-50 rounded-lg hover:from-red-100 hover:to-pink-100 transition-all border border-red-200 hover:border-grinnell-red group"
+                >
+                  <MapIcon className="w-5 h-5 text-grinnell-red group-hover:scale-110 transition-transform" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      Virtual Campus Tour
+                    </p>
+                    <p className="text-xs text-gray-600">Explore the campus</p>
+                  </div>
+                </a>
+                <a
+                  href="https://www.instagram.com/grinnelldorms/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg hover:from-pink-100 hover:to-rose-100 transition-all border border-pink-200 hover:border-grinnell-red group"
+                >
+                  <Instagram className="w-5 h-5 text-grinnell-red group-hover:scale-110 transition-transform" />
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-gray-900">
+                      Dorms Tour
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      See how each dorm actually looks like
+                    </p>
+                  </div>
+                </a>
               </div>
             </div>
           )}
