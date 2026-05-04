@@ -1,7 +1,6 @@
 import React from "react";
 import { useState } from "react";
 import { Mail, CheckCircle } from "lucide-react";
-import { SquirrelIcon } from "./SquirrelIcon";
 import { API_ENDPOINTS } from "../../config/api";
 
 interface AuthPageProps {
@@ -96,7 +95,7 @@ export function AuthPage({ onLogin }: AuthPageProps) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <SquirrelIcon className="w-16 h-16 text-grinnell-red" />
+            <img src="/Squirrel.svg" alt="GrinnDorm" className="w-16 h-16" />
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">GrinnDorm</h1>
           <p className="text-gray-600">Find your perfect home at Grinnell</p>

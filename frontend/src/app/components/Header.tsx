@@ -1,7 +1,6 @@
 import React from "react";
 import { Menu, X, ChevronLeft } from "lucide-react";
 import { useState } from "react";
-import { SquirrelIcon } from "./SquirrelIcon";
 
 interface HeaderProps {
   userEmail: string;
@@ -36,7 +35,7 @@ export function Header({
               onClick={onNavigateHome}
               className="flex items-center gap-2"
             >
-              <SquirrelIcon className="w-8 h-8 text-grinnell-red" />
+              <img src="/Squirrel.svg" alt="GrinnDorm" className="w-12 h-12" />
               <span className="text-2xl font-bold text-gray-900">
                 GrinnDorm
               </span>

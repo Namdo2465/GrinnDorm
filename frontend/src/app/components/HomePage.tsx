@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Search, Filter, MapPin, Star } from "lucide-react";
 import { Dorm, Review } from "../App";
-import { SquirrelIcon } from "./SquirrelIcon";
 
 interface HomePageProps {
   dorms: Dorm[];
@@ -10,8 +9,7 @@ interface HomePageProps {
   onDormClick: (dormId: string) => void;
 }
 
-// Mapping of dorm names to their positions on the map (in percentages)
-// Adjust these coordinates once you know the exact positions
+// Mapping of dorm names to their positions on the map as percentages (x, y)
 const DORM_POSITIONS: Record<string, { x: number; y: number }> = {
   "Younker Hall": { x: 44, y: 42 },
   "Smith Hall": { x: 40, y: 39 },
@@ -61,7 +59,12 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
     );
   };
 
-  const calculateDistance = (x1: number, y1: number, x2: number, y2: number) => {
+  const calculateDistance = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ) => {
     return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
   };
 
@@ -80,12 +83,13 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
   });
 
   // Determine which dorms to display: if filters are active, use filtered; otherwise use all
-  const dormsToDisplay = (searchQuery || selectedCampus !== 'All' || selectedRating !== 'All') 
-    ? filteredDorms 
-    : dorms;
+  const dormsToDisplay =
+    searchQuery || selectedCampus !== "All" || selectedRating !== "All"
+      ? filteredDorms
+      : dorms;
 
   const dormsWithDistance = dormsToDisplay
-    .map(dorm => {
+    .map((dorm) => {
       const dormPos = DORM_POSITIONS[dorm.name];
       if (!dormPos) return { dorm, distance: Infinity };
       const distance = calculateDistance(
@@ -98,12 +102,10 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
     })
     .sort((a, b) => a.distance - b.distance);
 
-  const nearbyDorms = dormsWithDistance.map(d => d.dorm);
+  const nearbyDorms = dormsWithDistance.map((d) => d.dorm);
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (mapRef.current) {
-      setIsDragging(true);
-    }
+    setIsDragging(!isDragging);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -118,187 +120,219 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
     }
   };
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
   useEffect(() => {
     if (isDragging) {
-      document.addEventListener("mouseup", handleMouseUp);
-      return () => document.removeEventListener("mouseup", handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      return () => document.removeEventListener("mousemove", handleMouseMove);
     }
   }, [isDragging]);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6">
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row gap-4 mb-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search dorms..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-grinnell-red focus:border-transparent"
-            />
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <Filter className="w-5 h-5" />
-            <span>Filters</span>
-          </button>
+    <div className="min-h-screen bg-gradient-to-b from-red-50 via-pink-50 to-rose-100">
+      {/* Hero Section */}
+      <div className="border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 py-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2 text-center">
+            Explore Campus Dorms
+          </h1>
+          <p className="text-lg text-gray-600 text-center">
+            Find your perfect home at Grinnell College
+          </p>
         </div>
-
-        {showFilters && (
-          <div className="bg-white rounded-lg shadow-md p-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Campus Area
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {campusOptions.map((campus) => (
-                  <button
-                    key={campus}
-                    onClick={() => setSelectedCampus(campus)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      selectedCampus === campus
-                        ? "bg-grinnell-red text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {campus}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Rating
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {["All", "3+", "4+"].map((rating) => (
-                  <button
-                    key={rating}
-                    onClick={() => setSelectedRating(rating)}
-                    className={`px-4 py-2 rounded-lg transition-colors ${
-                      selectedRating === rating
-                        ? "bg-grinnell-red text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {rating}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div
-              ref={mapRef}
-              className="relative cursor-move select-none"
-              onMouseMove={handleMouseMove}
-            >
-              <img
-                src="/CampusMap.png"
-                alt="Grinnell College Campus Map"
-                className="w-full h-auto object-contain"
+      <div className="max-w-7xl mx-auto p-4 md:p-6">
+        {/* Search & Filters Section */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-grinnell-red" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search dorms..."
+                className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-grinnell-red focus:border-grinnell-red bg-white shadow-sm hover:border-grinnell-red transition-all"
               />
-              <div className="absolute top-4 left-4 bg-white bg-opacity-90 rounded-lg p-4 shadow-md">
-                <div className="space-y-1">
-                  <p className="text-gray-900 font-semibold text-sm">
-                    Grinnell College Campus
-                  </p>
-                  <p className="text-gray-600 text-xs">
-                    Drag the squirrel or hover over dorms
-                  </p>
-                </div>
-              </div>
-
-              <div
-                className={`absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-grab ${
-                  isDragging ? "cursor-grabbing scale-110" : "hover:scale-105"
-                } transition-transform`}
-                style={{
-                  left: `${squirrelPosition.x}%`,
-                  top: `${squirrelPosition.y}%`,
-                }}
-                onMouseDown={handleMouseDown}
-              >
-                <SquirrelIcon className="w-full h-full text-grinnell-red drop-shadow-lg" />
-              </div>
-
-              {/* Dorm pin - appears on hover */}
-              {hoveredDormName && DORM_POSITIONS[hoveredDormName] && (
-                <div
-                  className="absolute -translate-x-1/2 -translate-y-full pointer-events-none animate-bounce"
-                  style={{
-                    left: `${DORM_POSITIONS[hoveredDormName].x}%`,
-                    top: `${DORM_POSITIONS[hoveredDormName].y}%`,
-                  }}
-                >
-                  <MapPin className="w-8 h-8 text-grinnell-red drop-shadow-lg" />
-                </div>
-              )}
             </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all transform hover:scale-105 ${
+                showFilters
+                  ? "bg-grinnell-red text-white shadow-lg"
+                  : "bg-white text-gray-700 border-2 border-gray-200 hover:border-grinnell-red shadow-sm"
+              }`}
+            >
+              <Filter className="w-5 h-5" />
+              <span>Filters</span>
+            </button>
           </div>
+
+          {showFilters && (
+            <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">
+                  Campus Area
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {campusOptions.map((campus) => (
+                    <button
+                      key={campus}
+                      onClick={() => setSelectedCampus(campus)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        selectedCampus === campus
+                          ? "bg-gradient-to-r from-grinnell-red to-red-600 text-white shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-red-50 border border-gray-200"
+                      }`}
+                    >
+                      {campus}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-3 uppercase tracking-wide">
+                  Minimum Rating
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {["All", "3+", "4+"].map((rating) => (
+                    <button
+                      key={rating}
+                      onClick={() => setSelectedRating(rating)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all transform hover:scale-105 ${
+                        selectedRating === rating
+                          ? "bg-gradient-to-r from-grinnell-red to-red-600 text-white shadow-md"
+                          : "bg-gray-100 text-gray-700 hover:bg-red-50 border border-gray-200"
+                      }`}
+                    >
+                      {rating}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Nearby Dorms
-            </h2>
-            {(searchQuery || selectedCampus !== 'All' || selectedRating !== 'All') && (
-              <p className="text-sm text-gray-600 mb-4">Showing closest matches to squirrel position</p>
-            )}
-            <div className="space-y-3 max-h-[500px] overflow-y-auto">
-              {nearbyDorms.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No dorms found</p>
-              ) : (
-                nearbyDorms.map((dorm) => {
-                  const avgRating = calculateAverage(dorm.id);
-                  const reviewCount = reviews.filter(
-                    (r) => r.dormId === dorm.id
-                  ).length;
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div ref={mapRef} className="relative cursor-move select-none">
+                <img
+                  src="/CampusMap.png"
+                  alt="Grinnell College Campus Map"
+                  className="w-full h-auto object-contain"
+                />
+                <div className="absolute top-4 left-4 bg-white bg-opacity-95 text-gray-900 rounded-xl p-3 shadow-lg">
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-sm">
+                      Grinnell College Campus Map
+                    </p>
+                    <p className="text-gray-600 text-xs">
+                      Click onto the squirrel or hover over list of dorms
+                    </p>
+                  </div>
+                </div>
 
-                  return (
-                    <div
-                      key={dorm.id}
-                      onClick={() => onDormClick(dorm.id)}
-                      onMouseEnter={() => setHoveredDormName(dorm.name)}
-                      onMouseLeave={() => setHoveredDormName(null)}
-                      className="p-4 border border-gray-200 rounded-lg hover:border-grinnell-red hover:shadow-md transition-all cursor-pointer"
-                    >
-                      <h3 className="font-semibold text-gray-900">
-                        {dorm.name}
-                      </h3>
-                      <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
-                        <MapPin className="w-3 h-3" />
-                        {dorm.campus}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <div className="flex items-center gap-1">
-                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                          <span className="text-sm font-medium">
-                            {avgRating > 0 ? avgRating.toFixed(1) : "N/A"}
-                          </span>
-                        </div>
-                        <span className="text-xs text-gray-500">
-                          ({reviewCount} reviews)
-                        </span>
-                      </div>
+                <div
+                  className={`absolute w-12 h-12 -translate-x-1/2 -translate-y-1/2 cursor-grab ${
+                    isDragging ? "cursor-grabbing scale-125" : "hover:scale-125"
+                  } transition-transform drop-shadow-2xl`}
+                  style={{
+                    left: `${squirrelPosition.x}%`,
+                    top: `${squirrelPosition.y}%`,
+                  }}
+                  onMouseDown={handleMouseDown}
+                >
+                  <img
+                    src={isDragging ? "/dragged_squirrel.svg" : "/Squirrel.svg"}
+                    alt="Squirrel"
+                    className="w-full h-full"
+                  />
+                  {isDragging && (
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white border border-grinnell-red rounded-lg px-2 py-1 shadow-lg animate-bounce whitespace-nowrap">
+                      <span className="text-xs font-bold text-grinnell-red">
+                        weeeeee
+                      </span>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-l-transparent border-r-transparent border-t-white"></div>
                     </div>
-                  );
-                })
+                  )}
+                </div>
+
+                {/* Dorm pin - appears on hover */}
+                {hoveredDormName && DORM_POSITIONS[hoveredDormName] && (
+                  <div
+                    className="absolute -translate-x-1/2 -translate-y-full pointer-events-none animate-bounce"
+                    style={{
+                      left: `${DORM_POSITIONS[hoveredDormName].x}%`,
+                      top: `${DORM_POSITIONS[hoveredDormName].y}%`,
+                    }}
+                  >
+                    <MapPin className="w-8 h-8 text-grinnell-red drop-shadow-lg" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-2xl shadow-xl p-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Nearby Dorms
+              </h2>
+              {(searchQuery ||
+                selectedCampus !== "All" ||
+                selectedRating !== "All") && (
+                <p className="text-sm text-grinnell-red font-medium mb-4">
+                  📍 Showing closest dorms based on squirrel position
+                </p>
               )}
+              <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                {nearbyDorms.length === 0 ? (
+                  <p className="text-gray-500 text-center py-8">
+                    No dorms found
+                  </p>
+                ) : (
+                  nearbyDorms.map((dorm) => {
+                    const avgRating = calculateAverage(dorm.id);
+                    const reviewCount = reviews.filter(
+                      (r) => r.dormId === dorm.id
+                    ).length;
+
+                    return (
+                      <div
+                        key={dorm.id}
+                        onClick={() => onDormClick(dorm.id)}
+                        onMouseEnter={() => setHoveredDormName(dorm.name)}
+                        onMouseLeave={() => setHoveredDormName(null)}
+                        className="p-4 border-2 border-gray-200 rounded-xl hover:border-grinnell-red hover:shadow-lg hover:bg-red-50 transition-all cursor-pointer"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-gray-900 text-lg">
+                              {dorm.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                              <MapPin className="w-3 h-3 text-grinnell-red" />
+                              {dorm.campus}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1 bg-yellow-100 px-3 py-1 rounded-full">
+                            <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                            <span className="text-sm font-bold text-gray-900">
+                              {avgRating > 0 ? avgRating.toFixed(1) : "N/A"}
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2 font-medium">
+                          {reviewCount}{" "}
+                          {reviewCount === 1 ? "review" : "reviews"}
+                        </p>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         </div>
