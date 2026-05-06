@@ -33,7 +33,12 @@ const DORM_POSITIONS: Record<string, { x: number; y: number }> = {
   "Renfrow Hall": { x: 11, y: 86 },
 };
 
-export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
+export function HomePage({
+  dorms,
+  reviews,
+  onDormClick,
+  userEmail,
+}: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCampus, setSelectedCampus] = useState<string>("All");
   const [selectedRating, setSelectedRating] = useState<string>("All");
@@ -41,7 +46,17 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [hoveredDormName, setHoveredDormName] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(() => {
+    // Only show tutorial if it hasn't been dismissed in this session
+    const dismissed = sessionStorage.getItem("tutorialDismissed");
+    return !dismissed;
+  });
   const mapRef = useRef<HTMLDivElement>(null);
+
+  const closeTutorial = () => {
+    setShowTutorial(false);
+    sessionStorage.setItem("tutorialDismissed", "true");
+  };
 
   const campusOptions = [
     "All",
@@ -142,6 +157,102 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
       </div>
 
       <div className="max-w-7xl mx-auto p-4 md:p-6">
+        {/* Tutorial Popup */}
+        {showTutorial && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4 pointer-events-none">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-100 pointer-events-auto">
+              <div className="flex items-start justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Welcome to GrinnDorm! 🐿️
+                </h2>
+                <button
+                  onClick={closeTutorial}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-600 font-bold">1</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold text-gray-900">
+                        Click the squirrel on the map
+                      </span>{" "}
+                      to pick it up
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-600 font-bold">2</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold text-gray-900">
+                        Move your cursor
+                      </span>{" "}
+                      to guide the squirrel around the map
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-600 font-bold">3</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold text-gray-900">
+                        Nearby dorm rankings update automatically
+                      </span>{" "}
+                      as the squirrel moves
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                    <span className="text-red-600 font-bold">4</span>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-700">
+                      <span className="font-semibold text-gray-900">
+                        Hover over a dorm
+                      </span>{" "}
+                      to see its location on the map
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={closeTutorial}
+                className="w-full mt-6 py-3 bg-gradient-to-r from-grinnell-red to-red-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all"
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Search & Filters Section */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -290,6 +401,14 @@ export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white border border-grinnell-red rounded-lg px-2 py-1 shadow-lg animate-bounce whitespace-nowrap">
                       <span className="text-xs font-bold text-grinnell-red">
                         weeeeee
+                      </span>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-l-transparent border-r-transparent border-t-white"></div>
+                    </div>
+                  )}
+                  {!isDragging && (
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-lg whitespace-nowrap opacity-75 hover:opacity-100 transition-opacity">
+                      <span className="text-xs font-bold text-gray-700">
+                        click onto me
                       </span>
                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-l-transparent border-r-transparent border-t-white"></div>
                     </div>

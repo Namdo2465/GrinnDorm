@@ -56,7 +56,9 @@ export default function App() {
         setDormLoading(true);
         setDormError(null);
         const token = localStorage.getItem("grinnDormToken");
-        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: Record<string, string> = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
         const response = await fetch(API_ENDPOINTS.GET_DORMS, { headers });
         if (!response.ok) {
           throw new Error(`Failed to fetch dorms: ${response.statusText}`);
@@ -99,24 +101,35 @@ export default function App() {
       try {
         // Fetch all dorm reviews in parallel
         const token = localStorage.getItem("grinnDormToken");
-        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers: Record<string, string> = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
         const reviewPromises = dorms.map(async (dorm) => {
           try {
-            const response = await fetch(API_ENDPOINTS.GET_DORM(dorm.id), { headers });
+            const response = await fetch(API_ENDPOINTS.GET_DORM(dorm.id), {
+              headers,
+            });
             if (!response.ok) return [];
 
             const data = await response.json();
             if (data.reviews && Array.isArray(data.reviews)) {
               return data.reviews.map((review: any) => {
                 // Convert backend vote type (upvote/downvote) to frontend format (up/down)
-                const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
+                const userVote =
+                  review.user_vote === "upvote"
+                    ? "up"
+                    : review.user_vote === "downvote"
+                    ? "down"
+                    : null;
                 return {
                   id: review.id,
                   dormId: dorm.id,
                   rating: review.rating,
                   comment: review.comment,
                   author: review.anonymous_name || "Anonymous",
-                  date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+                  date:
+                    review.created_at?.split("T")[0] ||
+                    new Date().toISOString().split("T")[0],
                   upvotes: review.upvote_count || 0,
                   downvotes: review.downvote_count || 0,
                   userVote,
@@ -153,25 +166,36 @@ export default function App() {
     const fetchDormReviews = async () => {
       try {
         const token = localStorage.getItem("grinnDormToken");
-        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
-        const response = await fetch(API_ENDPOINTS.GET_DORM(selectedDormId), { headers });
+        const headers: Record<string, string> = token
+          ? { Authorization: `Bearer ${token}` }
+          : {};
+        const response = await fetch(API_ENDPOINTS.GET_DORM(selectedDormId), {
+          headers,
+        });
         if (!response.ok) {
           throw new Error(`Failed to fetch reviews: ${response.statusText}`);
         }
         const data = await response.json();
-        
+
         // Format reviews from backend to match Review interface
         if (data.reviews && Array.isArray(data.reviews)) {
           const formattedReviews = data.reviews.map((review: any) => {
             // Convert backend vote type (upvote/downvote) to frontend format (up/down)
-            const userVote = review.user_vote === 'upvote' ? 'up' : review.user_vote === 'downvote' ? 'down' : null;
+            const userVote =
+              review.user_vote === "upvote"
+                ? "up"
+                : review.user_vote === "downvote"
+                ? "down"
+                : null;
             return {
               id: review.id,
               dormId: selectedDormId,
               rating: review.rating,
               comment: review.comment,
               author: review.anonymous_name || "Anonymous",
-              date: review.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+              date:
+                review.created_at?.split("T")[0] ||
+                new Date().toISOString().split("T")[0],
               upvotes: review.upvote_count || 0,
               downvotes: review.downvote_count || 0,
               userVote,
@@ -197,6 +221,7 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    sessionStorage.removeItem("tutorialDismissed");
     setIsLoggedIn(false);
     setUserEmail("");
     localStorage.removeItem("grinnDormLoggedIn");
@@ -324,7 +349,7 @@ export default function App() {
 
       const responseData = await response.json();
       const newReviewData = responseData.review;
-      
+
       // Create Review object from backend response
       const newReview: Review = {
         id: newReviewData.id,
@@ -332,7 +357,9 @@ export default function App() {
         rating: newReviewData.rating,
         comment: newReviewData.comment,
         author: newReviewData.anonymous_name || "Anonymous",
-        date: newReviewData.created_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+        date:
+          newReviewData.created_at?.split("T")[0] ||
+          new Date().toISOString().split("T")[0],
         upvotes: newReviewData.upvote_count || 0,
         downvotes: newReviewData.downvote_count || 0,
         userVote: null,
@@ -377,6 +404,7 @@ export default function App() {
               dorms={dorms}
               reviews={reviews}
               onDormClick={handleDormClick}
+              userEmail={userEmail}
             />
           )}
         </>
