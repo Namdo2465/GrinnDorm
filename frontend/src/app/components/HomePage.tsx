@@ -33,12 +33,18 @@ const DORM_POSITIONS: Record<string, { x: number; y: number }> = {
   "Renfrow Hall": { x: 11, y: 86 },
 };
 
-export function HomePage({
-  dorms,
-  reviews,
-  onDormClick,
-  userEmail,
-}: HomePageProps) {
+// Academic buildings data with positions
+const ACADEMIC_BUILDINGS = [
+  { name: "Gym", x: 72.5, y: 12 },
+  { name: "Burling Library", x: 60.5, y: 76 },
+  { name: "JRC", x: 63, y: 45 },
+  { name: "HSSC", x: 41.5, y: 55 },
+  { name: "Noyce", x: 63, y: 51 },
+  { name: "Bucksbaum Art Centre", x: 52, y: 78 },
+  { name: "Harris Centre", x: 56, y: 25.5 },
+];
+
+export function HomePage({ dorms, reviews, onDormClick }: HomePageProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCampus, setSelectedCampus] = useState<string>("All");
   const [selectedRating, setSelectedRating] = useState<string>("All");
@@ -46,6 +52,7 @@ export function HomePage({
   const [isDragging, setIsDragging] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [hoveredDormName, setHoveredDormName] = useState<string | null>(null);
+  const [hoveredBuilding, setHoveredBuilding] = useState<string | null>(null);
   const [showTutorial, setShowTutorial] = useState(() => {
     // Only show tutorial if it hasn't been dismissed in this session
     const dismissed = sessionStorage.getItem("tutorialDismissed");
@@ -123,19 +130,19 @@ export function HomePage({
     setIsDragging(!isDragging);
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && mapRef.current) {
-      const rect = mapRef.current.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      setSquirrelPosition({
-        x: Math.max(5, Math.min(95, x)),
-        y: Math.max(5, Math.min(95, y)),
-      });
-    }
-  };
-
   useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDragging && mapRef.current) {
+        const rect = mapRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        setSquirrelPosition({
+          x: Math.max(5, Math.min(95, x)),
+          y: Math.max(5, Math.min(95, y)),
+        });
+      }
+    };
+
     if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove);
       return () => document.removeEventListener("mousemove", handleMouseMove);
@@ -377,7 +384,7 @@ export function HomePage({
                       Grinnell College Campus Map
                     </p>
                     <p className="text-gray-600 text-xs">
-                      Click onto the squirrel or hover over list of dorms
+                      Click the squirrel or hover over list of dorms
                     </p>
                   </div>
                 </div>
@@ -408,7 +415,7 @@ export function HomePage({
                   {!isDragging && (
                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white border border-gray-300 rounded-lg px-2 py-1 shadow-lg whitespace-nowrap opacity-75 hover:opacity-100 transition-opacity">
                       <span className="text-xs font-bold text-gray-700">
-                        click onto me
+                        click me
                       </span>
                       <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-3 border-r-3 border-t-3 border-l-transparent border-r-transparent border-t-white"></div>
                     </div>
@@ -427,6 +434,40 @@ export function HomePage({
                     <MapPin className="w-8 h-8 text-grinnell-red drop-shadow-lg" />
                   </div>
                 )}
+
+                {/* Academic building pins with hover labels */}
+                {ACADEMIC_BUILDINGS.map((building) => (
+                  <div
+                    key={building.name}
+                    className="absolute -translate-x-1/2 -translate-y-1/2"
+                    style={{ left: `${building.x}%`, top: `${building.y}%` }}
+                  >
+                    <div
+                      className="relative cursor-pointer"
+                      onMouseEnter={() => setHoveredBuilding(building.name)}
+                      onMouseLeave={() => setHoveredBuilding(null)}
+                    >
+                      <div
+                        className={`w-6 h-6 bg-gradient-to-br from-red-600 to-red-800 rounded-full shadow-lg border-2 border-white flex items-center justify-center transition-transform ${
+                          hoveredBuilding === building.name
+                            ? "scale-125"
+                            : "hover:scale-110"
+                        }`}
+                      >
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      </div>
+
+                      {hoveredBuilding === building.name && (
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full mb-2 pointer-events-none z-50">
+                          <div className="bg-gradient-to-r from-red-600 to-red-800 text-white px-3 py-1 rounded-lg shadow-xl border-2 border-white whitespace-nowrap">
+                            <p className="text-xs font-bold">{building.name}</p>
+                          </div>
+                          <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-white mx-auto"></div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

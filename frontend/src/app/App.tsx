@@ -404,7 +404,6 @@ export default function App() {
               dorms={dorms}
               reviews={reviews}
               onDormClick={handleDormClick}
-              userEmail={userEmail}
             />
           )}
         </>
