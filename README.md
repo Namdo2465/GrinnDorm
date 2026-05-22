@@ -4,6 +4,10 @@ A modern, interactive web application for discovering and rating dorms at Grinne
 
 ![GrinnDorm Preview](./frontend/public/preview.png)
 
+## Live site
+
+[Check it out!](https://d1plp28np8eerz.cloudfront.net/)
+
 ## Demo Video
 
 [Watch the demo](https://drive.google.com/file/d/1tX3mLJA5PNauM8d3dYxFcFCiPcebARo9/view?usp=sharing)
