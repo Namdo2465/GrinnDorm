@@ -19,6 +19,7 @@ async function sendVerificationEmail(toEmail, code) {
         <p>Your verification code is:</p>
         <h1 style="font-size: 2rem; font-weight: bold; letter-spacing: 2px;">${code}</h1>
         <p>This code expires in 10 minutes.</p>
+        <p>Please check your spam folder too.</p>
         <p>Do not share this code with anyone.</p>
       `,
     });
